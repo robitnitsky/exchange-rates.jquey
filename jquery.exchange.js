@@ -1,69 +1,75 @@
 (function($) {
     $.fn.exchange = function(options) {
-        let opts = $.extend({}, $.fn.exchange.defaults, options);
         const self = this;
-        init();
 
-        function init() {
-            findElements();
-            attachEvents();
-        }
+        let opts = $.extend({}, $.fn.exchange.defaults, options);
 
-        function findElements() {
-            opts.$convertBtn = $(opts.convertBtn);
-            opts.$viceVersaBtn = $(opts.viceVersaBtn);
-            opts.$fromCurrencySelectEl = $(opts.fromCurrencySelectEl);
-            opts.$toCurrencySelectEl = $(opts.toCurrencySelectEl);
-            opts.$fromValueEl = $(opts.fromValueEl);
-        }
+        let methods = {
+            init: () => {
+                methods.findElements();
+                methods.attachEvents();
+            },
 
-        function attachEvents() {
-            opts.$convertBtn.on('click', (e) => {
-                e.preventDefault();
-                setResult(opts.apiUrl, getValue(opts.$fromCurrencySelectEl), getValue(opts.$toCurrencySelectEl), self);
-            });
+            findElements: () => {
+                opts.$convertBtn = $(opts.convertBtn);
+                opts.$viceVersaBtn = $(opts.viceVersaBtn);
+                opts.$fromCurrencySelectEl = $(opts.fromCurrencySelectEl);
+                opts.$toCurrencySelectEl = $(opts.toCurrencySelectEl);
+                opts.$fromValueEl = $(opts.fromValueEl);
+            },
 
-            opts.$viceVersaBtn.on('click', (e) => {
-                e.preventDefault();
-                reverseSelects(opts.$fromCurrencySelectEl, opts.$toCurrencySelectEl);
-                setResult(opts.apiUrl, getValue(opts.$fromCurrencySelectEl), getValue(opts.$toCurrencySelectEl), self);
-            });
+            attachEvents: () => {
+                opts.$convertBtn.on('click', (e) => {
+                    e.preventDefault();
+                    methods.setResult(opts.apiUrl, methods.getValue(opts.$fromCurrencySelectEl), methods.getValue(opts.$toCurrencySelectEl), self);
+                });
 
-            opts.$fromCurrencySelectEl.change(() => {
-                setResult(opts.apiUrl, getValue(opts.$fromCurrencySelectEl), getValue(opts.$toCurrencySelectEl), self);
-            });
+                opts.$viceVersaBtn.on('click', (e) => {
+                    e.preventDefault();
+                    methods.reverseSelects(opts.$fromCurrencySelectEl, opts.$toCurrencySelectEl);
+                    methods.setResult(opts.apiUrl, methods.getValue(opts.$fromCurrencySelectEl), methods.getValue(opts.$toCurrencySelectEl), self);
+                });
 
-            opts.$toCurrencySelectEl.change(() => {
-                setResult(opts.apiUrl, getValue(opts.$fromCurrencySelectEl), getValue(opts.$toCurrencySelectEl), self);
-            });
-        }
+                opts.$fromCurrencySelectEl.change(() => {
+                    methods.setResult(opts.apiUrl, methods.getValue(opts.$fromCurrencySelectEl), methods.getValue(opts.$toCurrencySelectEl), self);
+                });
 
-        function getValue($elem) {
-            return $elem.val();
-        }
+                opts.$toCurrencySelectEl.change(() => {
+                    methods.setResult(opts.apiUrl, methods.getValue(opts.$fromCurrencySelectEl), methods.getValue(opts.$toCurrencySelectEl), self);
+                });
+            },
 
-        function getCurrentURL(apiUrl, from, to) {
-            return apiUrl.replace(/{from}/, from).replace(/{to}/, to);
-        }
+            getValue: ($elem) => {
+                return $elem.val();
+            },
 
-        function calculate(input, coeficient) {
-            return input * coeficient;
-        }
+            getCurrentURL: (apiUrl, from, to) => {
+                return apiUrl.replace(/{from}/, from).replace(/{to}/, to);
+            },
 
-        function reverseSelects(select1, select2) {
-            let select1Val = getValue(select1);
-            select1.val(getValue(select2));
-            select2.val(select1Val);
-        }
+            calculate: (input, coeficient) => {
+                return input * coeficient;
+            },
 
-        function setResult(apiUrl, fromCurrencyVal, toCurrencyVal, self) {
-            let url = getCurrentURL(apiUrl, fromCurrencyVal, toCurrencyVal);
-            $.getJSON(url, function(data) {
-                let currentKey = fromCurrencyVal.toUpperCase() + '_' + toCurrencyVal.toUpperCase();
-                let coeficient = data[currentKey].val;
-                $(self).html(calculate(getValue(opts.$fromValueEl), coeficient));
-            });
-        }
+            reverseSelects: (select1, select2) => {
+                let select1Val = methods.getValue(select1);
+                select1.val(methods.getValue(select2));
+                select2.val(select1Val);
+            },
+
+            setResult: (apiUrl, fromCurrencyVal, toCurrencyVal, self) => {
+                let url = methods.getCurrentURL(apiUrl, fromCurrencyVal, toCurrencyVal);
+                $.getJSON(url, function(data) {
+                    let currentKey = fromCurrencyVal.toUpperCase() + '_' + toCurrencyVal.toUpperCase();
+                    let coeficient = data[currentKey].val;
+                    $(self).html(methods.calculate(methods.getValue(opts.$fromValueEl), coeficient));
+                });
+            },
+        };
+
+        methods.init();
+
+        return this;
     };
 
     $.fn.exchange.defaults = {
