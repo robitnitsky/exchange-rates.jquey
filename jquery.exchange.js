@@ -1,12 +1,42 @@
 (function($) {
-    $.fn.exchange = function() {
-        const apiUrl = 'http://free.currencyconverterapi.com/api/v5/convert?q={from}_{to}&compact=y';
-        const $convertBtn = $('#convert');
-        const $versaBtn = $('#vice-versa-currency');
-        const $fromCurrency = $('#from-currency');
-        const $toCurrency = $('#to-currency');
-        const $fromValue = $('#from-value');
-        const $toValue = this;
+    $.fn.exchange = function(options) {
+        let opts = $.extend({}, $.fn.exchange.defaults, options);
+        const self = this;
+        init();
+
+        function init() {
+            findElements();
+            attachEvents();
+        }
+
+        function findElements() {
+            opts.$convertBtn = $(opts.convertBtn);
+            opts.$viceVersaBtn = $(opts.viceVersaBtn);
+            opts.$fromCurrencySelectEl = $(opts.fromCurrencySelectEl);
+            opts.$toCurrencySelectEl = $(opts.toCurrencySelectEl);
+            opts.$fromValueEl = $(opts.fromValueEl);
+        }
+
+        function attachEvents() {
+            opts.$convertBtn.on('click', (e) => {
+                e.preventDefault();
+                setResult(opts.apiUrl, getValue(opts.$fromCurrencySelectEl), getValue(opts.$toCurrencySelectEl), self);
+            });
+
+            opts.$viceVersaBtn.on('click', (e) => {
+                e.preventDefault();
+                reverseSelects(opts.$fromCurrencySelectEl, opts.$toCurrencySelectEl);
+                setResult(opts.apiUrl, getValue(opts.$fromCurrencySelectEl), getValue(opts.$toCurrencySelectEl), self);
+            });
+
+            opts.$fromCurrencySelectEl.change(() => {
+                setResult(opts.apiUrl, getValue(opts.$fromCurrencySelectEl), getValue(opts.$toCurrencySelectEl), self);
+            });
+
+            opts.$toCurrencySelectEl.change(() => {
+                setResult(opts.apiUrl, getValue(opts.$fromCurrencySelectEl), getValue(opts.$toCurrencySelectEl), self);
+            });
+        }
 
         function getValue($elem) {
             return $elem.val();
@@ -26,32 +56,22 @@
             select2.val(select1Val);
         }
 
-        function setResult(apiUrl, fromCurrencyVal, toCurrencyVal, $elem) {
+        function setResult(apiUrl, fromCurrencyVal, toCurrencyVal, self) {
             let url = getCurrentURL(apiUrl, fromCurrencyVal, toCurrencyVal);
             $.getJSON(url, function(data) {
                 let currentKey = fromCurrencyVal.toUpperCase() + '_' + toCurrencyVal.toUpperCase();
                 let coeficient = data[currentKey].val;
-                $elem.html(calculate(getValue($fromValue), coeficient));
+                $(self).html(calculate(getValue(opts.$fromValueEl), coeficient));
             });
         }
+    };
 
-        $convertBtn.on('click', function(e) {
-            e.preventDefault();
-            setResult(apiUrl, getValue($fromCurrency), getValue($toCurrency), $toValue);
-        });
-
-        $versaBtn.on('click', function(e) {
-            e.preventDefault();
-            reverseSelects($fromCurrency, $toCurrency);
-            setResult(apiUrl, getValue($fromCurrency), getValue($toCurrency), $toValue);
-        });
-
-        $fromCurrency.change(function() {
-            setResult(apiUrl, getValue($fromCurrency), getValue($toCurrency), $toValue);
-        });
-
-        $toCurrency.change(function() {
-            setResult(apiUrl, getValue($fromCurrency), getValue($toCurrency), $toValue);
-        });
+    $.fn.exchange.defaults = {
+        apiUrl: 'http://free.currencyconverterapi.com/api/v5/convert?q={from}_{to}&compact=y',
+        convertBtn: '#convert',
+        viceVersaBtn: '#vice-versa-currency',
+        fromCurrencySelectEl: '#from-currency',
+        toCurrencySelectEl: '#to-currency',
+        fromValueEl: '#from-value',
     };
 })(jQuery);
